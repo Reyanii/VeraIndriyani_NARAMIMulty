@@ -125,7 +125,7 @@ namespace MiMultyCBGApp
             this.Controls.Add(this.txtIDBarang);
             this.Controls.Add(this.label1);
             this.Name = "FormInputPenjualan";
-            this.Text = "Input Penjualan";
+            this.Text = "NARA - Input Penjualan";
             this.ResumeLayout(false);
             this.PerformLayout();
         }

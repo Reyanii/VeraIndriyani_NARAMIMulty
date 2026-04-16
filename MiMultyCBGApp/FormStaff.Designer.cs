@@ -71,7 +71,7 @@ namespace MiMultyCBGApp
             this.Controls.Add(this.btnRefresh);
             this.Controls.Add(this.dgvBarangStaff);
             this.Name = "FormStaff";
-            this.Text = "Dashboard Staff";
+            this.Text = "NARA - Dashboard Staff";
             ((System.ComponentModel.ISupportInitialize)(this.dgvBarangStaff)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();

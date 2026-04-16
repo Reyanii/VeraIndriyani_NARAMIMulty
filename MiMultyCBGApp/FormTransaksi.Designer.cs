@@ -94,7 +94,7 @@ namespace MiMultyCBGApp
             this.Controls.Add(this.btnLogout);
             this.Name = "FormTransaksi";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Dashboard Staff - Kasir Transaksi";
+            this.Text = "NARA - Dashboard Staff - Kasir Transaksi";
             
             ((System.ComponentModel.ISupportInitialize)(this.dgvBarang)).EndInit();
             this.ResumeLayout(false);
