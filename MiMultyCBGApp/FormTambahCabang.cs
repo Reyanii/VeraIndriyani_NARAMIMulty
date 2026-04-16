@@ -15,16 +15,25 @@ namespace MiMultyCBGApp
         public FormTambahCabang()
         {
             this.Text = "Tambah Cabang";
-            this.Size = new Size(300, 250);
+            this.Size = new Size(320, 230);
             this.StartPosition = FormStartPosition.CenterParent;
+            this.FormBorderStyle = FormBorderStyle.FixedDialog;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
 
-            Label l1 = new Label() { Text = "Nama Cabang:", Location = new Point(20, 20), Width = 100 };
-            txtNamaCabang = new TextBox() { Location = new Point(120, 20), Width = 140 };
-            
-            Label l2 = new Label() { Text = "Alamat:", Location = new Point(20, 60), Width = 100 };
-            txtAlamat = new TextBox() { Location = new Point(120, 60), Width = 140, Multiline = true, Height = 60 };
+            Label l1 = new Label() { Text = "Nama Cabang:", Location = new Point(20, 25), Width = 100 };
+            txtNamaCabang = new TextBox() { Location = new Point(130, 22), Width = 150 };
 
-            btnTambah = new Button() { Text = "Tambah", Location = new Point(120, 130), Width = 100, BackColor = Color.LightGreen };
+            Label l2 = new Label() { Text = "Alamat:", Location = new Point(20, 65), Width = 100 };
+            txtAlamat = new TextBox() { Location = new Point(130, 62), Width = 150, Multiline = true, Height = 60 };
+
+            btnTambah = new Button()
+            {
+                Text = "Tambah",
+                Location = new Point(130, 140),
+                Width = 100,
+                BackColor = Color.LightGreen
+            };
             btnTambah.Click += BtnTambah_Click;
 
             this.Controls.Add(l1);
@@ -36,15 +45,21 @@ namespace MiMultyCBGApp
 
         private void BtnTambah_Click(object sender, EventArgs e)
         {
+            if (string.IsNullOrWhiteSpace(txtNamaCabang.Text))
+            {
+                MessageBox.Show("Nama Cabang harus diisi!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             try
             {
-                bll.InsertCabang(txtNamaCabang.Text, txtAlamat.Text);
-                MessageBox.Show("Cabang berhasil ditambah!");
+                bll.InsertCabang(txtNamaCabang.Text.Trim(), txtAlamat.Text.Trim());
+                MessageBox.Show("Cabang berhasil ditambahkan!", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 this.Close();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                MessageBox.Show("Error: " + ex.Message);
+                MessageBox.Show("Error saat menambah cabang:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

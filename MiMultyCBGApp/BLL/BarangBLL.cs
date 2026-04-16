@@ -119,14 +119,14 @@ namespace MiMultyCBGApp.BLL
             {
                 string query = @"
                     SELECT 
-                        b.KodeBarang AS [ID Barang], 
+                        ISNULL(b.KodeBarang, '-') AS [ID Barang], 
                         c.ID_Cabang AS [ID Cabang], 
-                        b.NamaBarang AS [Nama Barang], 
+                        ISNULL(b.NamaBarang, '-') AS [Nama Barang], 
                         c.NamaCabang AS [Lokasi Cabang], 
-                        b.Stok AS [Stok Tersedia], 
+                        ISNULL(b.Stok, 0) AS [Stok Tersedia], 
                         ISNULL(SUM(t.QtyTerjual), 0) AS [Barang Terjual]
-                    FROM Barang b
-                    INNER JOIN Cabang c ON b.ID_Cabang = c.ID_Cabang
+                    FROM Cabang c
+                    LEFT JOIN Barang b ON c.ID_Cabang = b.ID_Cabang
                     LEFT JOIN Transaksi t ON b.KodeBarang = t.KodeBarang AND b.ID_Cabang = t.ID_Cabang
                     GROUP BY b.KodeBarang, c.ID_Cabang, b.NamaBarang, c.NamaCabang, b.Stok";
                 using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -192,12 +192,50 @@ namespace MiMultyCBGApp.BLL
         {
             using (SqlConnection conn = DbConnection.GetConnection())
             {
-                string query = "DELETE FROM Cabang WHERE ID_Cabang=@ID";
-                using (SqlCommand cmd = new SqlCommand(query, conn))
+                conn.Open();
+                using (SqlTransaction trans = conn.BeginTransaction())
                 {
-                    cmd.Parameters.AddWithValue("@ID", idCabang);
-                    conn.Open();
-                    cmd.ExecuteNonQuery();
+                    try
+                    {
+                        // 1. Delete related Transactions
+                        string deleteTransaksi = "DELETE FROM Transaksi WHERE ID_Cabang=@ID";
+                        using (SqlCommand cmd = new SqlCommand(deleteTransaksi, conn, trans))
+                        {
+                            cmd.Parameters.AddWithValue("@ID", idCabang);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        // 2. Delete related Goods (Barang)
+                        string deleteBarang = "DELETE FROM Barang WHERE ID_Cabang=@ID";
+                        using (SqlCommand cmd = new SqlCommand(deleteBarang, conn, trans))
+                        {
+                            cmd.Parameters.AddWithValue("@ID", idCabang);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        // 3. Delete related Users (Staff)
+                        string deleteUsers = "DELETE FROM Users WHERE ID_Cabang=@ID";
+                        using (SqlCommand cmd = new SqlCommand(deleteUsers, conn, trans))
+                        {
+                            cmd.Parameters.AddWithValue("@ID", idCabang);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        // 4. Delete the Branch itself
+                        string deleteCabang = "DELETE FROM Cabang WHERE ID_Cabang=@ID";
+                        using (SqlCommand cmd = new SqlCommand(deleteCabang, conn, trans))
+                        {
+                            cmd.Parameters.AddWithValue("@ID", idCabang);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        trans.Commit();
+                    }
+                    catch (Exception ex)
+                    {
+                        trans.Rollback();
+                        throw new Exception("Gagal menghapus cabang dan data terkait: " + ex.Message);
+                    }
                 }
             }
         }
@@ -225,16 +263,16 @@ namespace MiMultyCBGApp.BLL
             {
                 string query = @"
                     SELECT 
-                        b.KodeBarang AS [ID Barang], 
+                        ISNULL(b.KodeBarang, '-') AS [ID Barang], 
                         c.ID_Cabang AS [ID Cabang], 
-                        b.NamaBarang AS [Nama Barang], 
+                        ISNULL(b.NamaBarang, '-') AS [Nama Barang], 
                         c.NamaCabang AS [Lokasi Cabang], 
-                        b.Stok AS [Stok], 
+                        ISNULL(b.Stok, 0) AS [Stok], 
                         ISNULL(SUM(t.QtyTerjual), 0) AS [Barang Terjual]
-                    FROM Barang b
-                    INNER JOIN Cabang c ON b.ID_Cabang = c.ID_Cabang
+                    FROM Cabang c
+                    LEFT JOIN Barang b ON c.ID_Cabang = b.ID_Cabang
                     LEFT JOIN Transaksi t ON b.KodeBarang = t.KodeBarang AND b.ID_Cabang = t.ID_Cabang AND t.ID_Cabang = @ID_Cabang
-                    WHERE b.ID_Cabang = @ID_Cabang
+                    WHERE c.ID_Cabang = @ID_Cabang
                     GROUP BY b.KodeBarang, c.ID_Cabang, b.NamaBarang, c.NamaCabang, b.Stok";
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {

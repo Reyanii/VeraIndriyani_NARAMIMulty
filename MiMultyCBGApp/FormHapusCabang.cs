@@ -30,15 +30,26 @@ namespace MiMultyCBGApp
 
         private void BtnHapus_Click(object sender, EventArgs e)
         {
-            try
+            if (string.IsNullOrWhiteSpace(txtIdCabang.Text))
             {
-                bll.DeleteCabang(int.Parse(txtIdCabang.Text));
-                MessageBox.Show("Cabang berhasil dihapus!");
-                this.Close();
+                MessageBox.Show("ID Cabang harus diisi!");
+                return;
             }
-            catch (Exception ex)
+
+            var confirm = MessageBox.Show("Menghapus cabang akan menghapus SEMUA data Staff, Barang, dan Transaksi di cabang tersebut secara permanen. Lanjutkan?", "Konfirmasi Hapus", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            
+            if (confirm == DialogResult.Yes)
             {
-                MessageBox.Show("Gagal Hapus (Mungkin ada data terkait):\n" + ex.Message);
+                try
+                {
+                    bll.DeleteCabang(int.Parse(txtIdCabang.Text));
+                    MessageBox.Show("Cabang dan semua data terkait berhasil dihapus!");
+                    this.Close();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Gagal Hapus: " + ex.Message);
+                }
             }
         }
     }
