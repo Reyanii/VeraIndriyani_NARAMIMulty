@@ -2,6 +2,7 @@ using System;
 
 namespace MiMultyCBGApp.Models
 {
+
     public class Transaksi
     {
         public int ID_Transaksi { get; set; }
