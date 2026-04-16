@@ -80,4 +80,52 @@ namespace MiMultyCBGApp
                         return;
                     }
 
-                   
+                    // 2. Kurangi Stok menggunakan ExecuteNonQuery
+                    string queryUpdate = "UPDATE Barang SET Stok = Stok - @Qty WHERE KodeBarang=@Kode";
+                    using (SqlCommand cmdUpdate = new SqlCommand(queryUpdate, conn, sqlTrans))
+                    {
+                        cmdUpdate.Parameters.AddWithValue("@Qty", qtyReq);
+                        cmdUpdate.Parameters.AddWithValue("@Kode", kodeBarang);
+                        cmdUpdate.ExecuteNonQuery();
+                    }
+
+                    // 3. Catat Transaksi
+                    decimal totalHarga = qtyReq * hargaSatuan;
+                    string queryInsert = @"INSERT INTO Transaksi (ID_Cabang, UserID, KodeBarang, QtyTerjual, TotalHarga, TanggalTransaksi) 
+                                           VALUES (@Cabang, @UID, @Kode, @Qty, @Total, @Tgl)";
+                    using (SqlCommand cmdInsert = new SqlCommand(queryInsert, conn, sqlTrans))
+                    {
+                        cmdInsert.Parameters.AddWithValue("@Cabang", currentUser.ID_Cabang);
+                        cmdInsert.Parameters.AddWithValue("@UID", currentUser.UserID);
+                        cmdInsert.Parameters.AddWithValue("@Kode", kodeBarang);
+                        cmdInsert.Parameters.AddWithValue("@Qty", qtyReq);
+                        cmdInsert.Parameters.AddWithValue("@Total", totalHarga);
+                        cmdInsert.Parameters.AddWithValue("@Tgl", DateTime.Now);
+                        cmdInsert.ExecuteNonQuery();
+                    }
+
+                    sqlTrans.Commit();
+                    MessageBox.Show($"Transaksi Berhasil!\nTotal Harga: Rp {totalHarga:N2}", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    
+                    // Reset UI
+                    txtKode.Clear();
+                    txtQty.Clear();
+                    hargaSatuan = 0;
+                    
+                    // Refresh grid stok
+                    LoadDataBarang();
+                }
+                catch (Exception ex)
+                {
+                    sqlTrans.Rollback();
+                    MessageBox.Show("Gagal menyimpan transaksi: " + ex.Message);
+                }
+            }
+        }
+
+        private void btnLogout_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+    }
+}
