@@ -19,6 +19,7 @@ namespace MiMultyCBGApp
             this.currentUser = user;
             txtIDCabang.Text = user.ID_Cabang.ToString();
             txtIDCabang.ReadOnly = true;
+            txtJumlah.KeyPress += NumericOnly_KeyPress;
 
             // Jika form dipanggil lewat double-click row (kode barang sudah ada)
             if (!string.IsNullOrEmpty(preSelectedKode))
@@ -35,11 +36,19 @@ namespace MiMultyCBGApp
             }
         }
 
+        private void NumericOnly_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+            {
+                e.Handled = true;
+            }
+        }
+
         private void btnCekNama_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(txtIDBarang.Text))
             {
-                MessageBox.Show("Masukkan ID Barang terlebih dahulu!");
+                MessageBox.Show("Masukkan ID Barang terlebih dahulu!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -60,7 +69,7 @@ namespace MiMultyCBGApp
         {
             if (string.IsNullOrWhiteSpace(txtIDBarang.Text) || string.IsNullOrWhiteSpace(txtJumlah.Text))
             {
-                MessageBox.Show("Lengkapi ID Barang dan Jumlah!");
+                MessageBox.Show("Lengkapi ID Barang dan Jumlah!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -69,7 +78,7 @@ namespace MiMultyCBGApp
 
             if (!int.TryParse(txtJumlah.Text, out qtyReq) || qtyReq <= 0)
             {
-                MessageBox.Show("Jumlah harus berupa angka lebih dari 0!");
+                MessageBox.Show("Jumlah harus berupa angka lebih dari 0!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
