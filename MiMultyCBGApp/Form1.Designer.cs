@@ -49,6 +49,7 @@ namespace MiMultyCBGApp
             this.txtUsername.Name = "txtUsername";
             this.txtUsername.Size = new System.Drawing.Size(199, 22);
             this.txtUsername.TabIndex = 3;
+            this.txtUsername.MaxLength = 50;
             // 
             // txtPassword
             // 
@@ -58,6 +59,7 @@ namespace MiMultyCBGApp
             this.txtPassword.PasswordChar = '*';
             this.txtPassword.Size = new System.Drawing.Size(199, 22);
             this.txtPassword.TabIndex = 1;
+            this.txtPassword.MaxLength = 100;
             // 
             // btnLogin
             // 
