@@ -46,9 +46,82 @@ namespace MiMultyCBGApp.BLL
 
         public void InsertBarang(Barang b)
         {
+            if (b.Harga <= 0) throw new ArgumentException("Harga barang harus lebih besar dari Rp 0!");
+            if (b.Stok <= 0) throw new ArgumentException("Jumlah stok atau restock harus minimal 1!");
+
             using (SqlConnection conn = DbConnection.GetConnection())
             {
+                conn.Open();
+
+                string checkQuery = "SELECT COUNT(*) FROM Barang WHERE KodeBarang=@Kode AND ID_Cabang=@Cabang";
+                using (SqlCommand checkCmd = new SqlCommand(checkQuery, conn))
+                {
+                    checkCmd.Parameters.AddWithValue("@Kode", b.KodeBarang);
+                    checkCmd.Parameters.AddWithValue("@Cabang", b.ID_Cabang);
+                    int count = (int)checkCmd.ExecuteScalar();
+                    if (count > 0)
+                    {
+                        throw new Exception("Barang tersebut sudah terdaftar di cabang ini! Silakan gunakan fitur Restock.");
+                    }
+                }
+
                 string query = "INSERT INTO Barang (KodeBarang, ID_Cabang, NamaBarang, Kategori, Harga, Stok) VALUES (@Kode, @Cabang, @Nama, @Kat, @Harga, @Stok)";
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@Kode", b.KodeBarang);
+                    cmd.Parameters.AddWithValue("@Cabang", b.ID_Cabang);
+                    cmd.Parameters.AddWithValue("@Nama", b.NamaBarang);
+                    cmd.Parameters.AddWithValue("@Kat", b.Kategori);
+                    cmd.Parameters.AddWithValue("@Harga", b.Harga);
+                    cmd.Parameters.AddWithValue("@Stok", b.Stok);
+
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public List<Barang> GetDistinctBarang()
+        {
+            List<Barang> listBarang = new List<Barang>();
+            using (SqlConnection conn = DbConnection.GetConnection())
+            {
+                string query = "SELECT DISTINCT KodeBarang, NamaBarang, Kategori, Harga FROM Barang";
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    try
+                    {
+                        conn.Open();
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                listBarang.Add(new Barang
+                                {
+                                    KodeBarang = reader["KodeBarang"].ToString(),
+                                    NamaBarang = reader["NamaBarang"].ToString(),
+                                    Kategori = reader["Kategori"].ToString(),
+                                    Harga = Convert.ToDecimal(reader["Harga"])
+                                });
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception("Error Get Distinct Barang: " + ex.Message);
+                    }
+                }
+            }
+            return listBarang;
+        }
+
+        public void UpdateBarang(Barang b)
+        {
+            if (b.Harga <= 0) throw new ArgumentException("Harga barang harus lebih besar dari Rp 0!");
+            if (b.Stok < 0) throw new ArgumentException("Stok tidak boleh minus!");
+
+            using (SqlConnection conn = DbConnection.GetConnection())
+            {
+                string query = "UPDATE Barang SET NamaBarang=@Nama, Kategori=@Kat, Harga=@Harga, Stok=@Stok WHERE KodeBarang=@Kode AND ID_Cabang=@Cabang";
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@Kode", b.KodeBarang);
@@ -64,33 +137,15 @@ namespace MiMultyCBGApp.BLL
             }
         }
 
-        public void UpdateBarang(Barang b)
+        public void DeleteBarang(string kodeBarang, int idCabang)
         {
             using (SqlConnection conn = DbConnection.GetConnection())
             {
-                string query = "UPDATE Barang SET NamaBarang=@Nama, Kategori=@Kat, Harga=@Harga, Stok=@Stok WHERE KodeBarang=@Kode";
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    cmd.Parameters.AddWithValue("@Kode", b.KodeBarang);
-                    cmd.Parameters.AddWithValue("@Nama", b.NamaBarang);
-                    cmd.Parameters.AddWithValue("@Kat", b.Kategori);
-                    cmd.Parameters.AddWithValue("@Harga", b.Harga);
-                    cmd.Parameters.AddWithValue("@Stok", b.Stok);
-
-                    conn.Open();
-                    cmd.ExecuteNonQuery();
-                }
-            }
-        }
-
-        public void DeleteBarang(string kodeBarang)
-        {
-            using (SqlConnection conn = DbConnection.GetConnection())
-            {
-                string query = "DELETE FROM Barang WHERE KodeBarang=@Kode";
+                string query = "DELETE FROM Barang WHERE KodeBarang=@Kode AND ID_Cabang=@Cabang";
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@Kode", kodeBarang);
+                    cmd.Parameters.AddWithValue("@Cabang", idCabang);
                     conn.Open();
                     cmd.ExecuteNonQuery();
                 }
@@ -99,6 +154,8 @@ namespace MiMultyCBGApp.BLL
 
         public void RestockBarang(string kodeBarang, int nambahStok)
         {
+            if (nambahStok <= 0) throw new ArgumentException("Jumlah stok atau restock harus minimal 1!");
+
             using (SqlConnection conn = DbConnection.GetConnection())
             {
                 string query = "UPDATE Barang SET Stok = Stok + @Nambah WHERE KodeBarang=@Kode";
@@ -158,6 +215,8 @@ namespace MiMultyCBGApp.BLL
 
         public void RestockBarangDashboard(string kodeBarang, int idCabang, int jumlah)
         {
+            if (jumlah <= 0) throw new ArgumentException("Jumlah stok atau restock harus minimal 1!");
+
             using (SqlConnection conn = DbConnection.GetConnection())
             {
                 string query = "UPDATE Barang SET Stok = Stok + @Jumlah WHERE KodeBarang=@Kode AND ID_Cabang=@Cabang";
@@ -301,6 +360,39 @@ namespace MiMultyCBGApp.BLL
                 }
             }
             return nama;
+        }
+
+        public string GenerateKodeBarang()
+    {
+        string kodeBaru = "BRG001"; // Default jika tabel masih kosong
+
+        using (SqlConnection conn = DbConnection.GetConnection())
+        {
+            // Ambil 1 kode barang terakhir (berdasarkan urutan abjad/angka menurun)
+            string query = "SELECT TOP 1 KodeBarang FROM Barang WHERE KodeBarang LIKE 'BRG%' ORDER BY KodeBarang DESC";
+
+            using (SqlCommand cmd = new SqlCommand(query, conn))
+            {
+                conn.Open();
+                object result = cmd.ExecuteScalar();
+
+                if (result != null && result != DBNull.Value)
+                {
+                    string kodeTerakhir = result.ToString();
+
+                    // Pisahkan string "BRG" (3 huruf) dan ambil sisa angkanya
+                    string angkaString = kodeTerakhir.Substring(3);
+
+                    if (int.TryParse(angkaString, out int angka))
+                    {
+                        angka++; // Tambah 1
+                                 // Gabungkan kembali dengan format 3 digit (contoh: dari 1 jadi "002")
+                        kodeBaru = "BRG" + angka.ToString("D3");
+                    }
+                }
+            }
+        }
+        return kodeBaru;
         }
     }
 }
