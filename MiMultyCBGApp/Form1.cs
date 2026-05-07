@@ -16,13 +16,19 @@ namespace MiMultyCBGApp
 
         private void btnLogin_Click(object sender, EventArgs e)
         {
+            if (string.IsNullOrWhiteSpace(txtUsername.Text) || string.IsNullOrWhiteSpace(txtPassword.Text))
+            {
+                MessageBox.Show("Username dan Password tidak boleh kosong!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             try
             {
                 User loggedUser = loginBll.AuthenticateUser(txtUsername.Text, txtPassword.Text);
 
                 if (loggedUser != null)
                 {
-                    MessageBox.Show("Login Berhasil sebagai " + loggedUser.Role);
+                    MessageBox.Show("Login Berhasil sebagai " + loggedUser.Role, "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     this.Hide();
 
                     if (loggedUser.Role.Equals("Admin", StringComparison.OrdinalIgnoreCase))
@@ -42,12 +48,12 @@ namespace MiMultyCBGApp
                 }
                 else
                 {
-                    MessageBox.Show("Username atau Password salah!");
+                    MessageBox.Show("Username atau Password salah!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }
