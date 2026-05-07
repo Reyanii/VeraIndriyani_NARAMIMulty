@@ -50,6 +50,7 @@ namespace MiMultyCBGApp
             this.txtIDBarang.Name = "txtIDBarang";
             this.txtIDBarang.Size = new System.Drawing.Size(120, 20);
             this.txtIDBarang.TabIndex = 1;
+            this.txtIDBarang.MaxLength = 50;
             // 
             // btnCekNama
             // 
