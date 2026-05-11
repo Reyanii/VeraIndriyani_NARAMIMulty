@@ -22,10 +22,10 @@ namespace MiMultyCBGApp
             this.MinimizeBox = false;
 
             Label l1 = new Label() { Text = "Nama Cabang:", Location = new Point(20, 25), Width = 100 };
-            txtNamaCabang = new TextBox() { Location = new Point(130, 22), Width = 150 };
+            txtNamaCabang = new TextBox() { Location = new Point(130, 22), Width = 150, MaxLength = 100 };
 
             Label l2 = new Label() { Text = "Alamat:", Location = new Point(20, 65), Width = 100 };
-            txtAlamat = new TextBox() { Location = new Point(130, 62), Width = 150, Multiline = true, Height = 60 };
+            txtAlamat = new TextBox() { Location = new Point(130, 62), Width = 150, Multiline = true, Height = 60, MaxLength = 255 };
 
             btnTambah = new Button()
             {
@@ -45,9 +45,9 @@ namespace MiMultyCBGApp
 
         private void BtnTambah_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtNamaCabang.Text))
+            if (string.IsNullOrWhiteSpace(txtNamaCabang.Text) || string.IsNullOrWhiteSpace(txtAlamat.Text))
             {
-                MessageBox.Show("Nama Cabang harus diisi!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Semua data harus diisi!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 

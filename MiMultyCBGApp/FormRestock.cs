@@ -23,7 +23,7 @@ namespace MiMultyCBGApp
             this.StartPosition = FormStartPosition.CenterParent;
 
             Label l1 = new Label() { Text = "ID Barang:", Location = new Point(20, 20) };
-            txtIdBarang = new TextBox() { Location = new Point(120, 20), Width = 150 };
+            txtIdBarang = new TextBox() { Location = new Point(120, 20), Width = 150, MaxLength = 50 };
 
             btnCekNama = new Button() { Text = "Cek Nama", Location = new Point(120, 50), Width = 70 };
             btnCekNama.Click += BtnCekNama_Click;
@@ -32,9 +32,11 @@ namespace MiMultyCBGApp
 
             Label l2 = new Label() { Text = "ID Cabang:", Location = new Point(20, 110) };
             txtIdCabang = new TextBox() { Location = new Point(120, 110), Width = 150 };
+            txtIdCabang.KeyPress += NumericOnly_KeyPress;
 
             Label l3 = new Label() { Text = "Jumlah:", Location = new Point(20, 140) };
             txtJumlah = new TextBox() { Location = new Point(120, 140), Width = 150 };
+            txtJumlah.KeyPress += NumericOnly_KeyPress;
 
             btnSimpan = new Button() { Text = "Simpan", Location = new Point(120, 180), Width = 100, BackColor = Color.LightGreen };
             btnSimpan.Click += BtnSimpan_Click;
@@ -50,8 +52,22 @@ namespace MiMultyCBGApp
             this.Controls.Add(btnSimpan);
         }
 
+        private void NumericOnly_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+            {
+                e.Handled = true;
+            }
+        }
+
         private void BtnCekNama_Click(object sender, EventArgs e)
         {
+            if (string.IsNullOrWhiteSpace(txtIdBarang.Text))
+            {
+                MessageBox.Show("ID Barang harus diisi!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             try
             {
                 string nama = bll.GetNamaBarang(txtIdBarang.Text);
@@ -59,21 +75,39 @@ namespace MiMultyCBGApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void BtnSimpan_Click(object sender, EventArgs e)
         {
+            if (string.IsNullOrWhiteSpace(txtIdBarang.Text) || string.IsNullOrWhiteSpace(txtIdCabang.Text) || string.IsNullOrWhiteSpace(txtJumlah.Text))
+            {
+                MessageBox.Show("Semua data harus diisi!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (!int.TryParse(txtJumlah.Text, out int jumlahRestock))
+            {
+                MessageBox.Show("Input string was not in a correct format untuk Jumlah!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (jumlahRestock <= 0)
+            {
+                MessageBox.Show("Jumlah stok atau restock harus minimal 1!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             try
             {
-                bll.RestockBarangDashboard(txtIdBarang.Text, int.Parse(txtIdCabang.Text), int.Parse(txtJumlah.Text));
-                MessageBox.Show("Restock Berhasil!");
+                bll.RestockBarangDashboard(txtIdBarang.Text, int.Parse(txtIdCabang.Text), jumlahRestock);
+                MessageBox.Show("Restock Berhasil!", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 this.Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Gagal: " + ex.Message);
+                MessageBox.Show("Gagal: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

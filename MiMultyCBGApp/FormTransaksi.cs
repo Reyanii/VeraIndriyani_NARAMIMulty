@@ -20,7 +20,16 @@ namespace MiMultyCBGApp
             InitializeComponent();
             this.currentUser = user;
             lblInfo.Text = $"Login Staff: {user.Username} | ID Cabang: {user.ID_Cabang}";
+            txtQty.KeyPress += NumericOnly_KeyPress;
             LoadDataBarang();
+        }
+
+        private void NumericOnly_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+            {
+                e.Handled = true;
+            }
         }
 
         private void LoadDataBarang()
@@ -42,7 +51,7 @@ namespace MiMultyCBGApp
         {
             if (string.IsNullOrEmpty(txtKode.Text) || string.IsNullOrEmpty(txtQty.Text))
             {
-                MessageBox.Show("Pilih barang dan isi Qty terlebih dahulu!");
+                MessageBox.Show("Pilih barang dan isi Qty terlebih dahulu!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -50,7 +59,7 @@ namespace MiMultyCBGApp
             int qtyReq = 0;
             if (!int.TryParse(txtQty.Text, out qtyReq) || qtyReq <= 0)
             {
-                MessageBox.Show("Qty harus berupa angka lebih besar dari 0!");
+                MessageBox.Show("Qty harus berupa angka lebih besar dari 0!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -61,11 +70,12 @@ namespace MiMultyCBGApp
                 try
                 {
                     // 1. Cek Stok di DB
-                    string queryCheck = "SELECT Stok FROM Barang WHERE KodeBarang=@Kode";
+                    string queryCheck = "SELECT Stok FROM Barang WHERE KodeBarang=@Kode AND ID_Cabang=@Cabang";
                     int stokReal = 0;
                     using (SqlCommand cmdCheck = new SqlCommand(queryCheck, conn, sqlTrans))
                     {
                         cmdCheck.Parameters.AddWithValue("@Kode", kodeBarang);
+                        cmdCheck.Parameters.AddWithValue("@Cabang", currentUser.ID_Cabang);
                         object result = cmdCheck.ExecuteScalar();
                         if (result != null)
                         {
@@ -81,11 +91,12 @@ namespace MiMultyCBGApp
                     }
 
                     // 2. Kurangi Stok menggunakan ExecuteNonQuery
-                    string queryUpdate = "UPDATE Barang SET Stok = Stok - @Qty WHERE KodeBarang=@Kode";
+                    string queryUpdate = "UPDATE Barang SET Stok = Stok - @Qty WHERE KodeBarang=@Kode AND ID_Cabang=@Cabang";
                     using (SqlCommand cmdUpdate = new SqlCommand(queryUpdate, conn, sqlTrans))
                     {
                         cmdUpdate.Parameters.AddWithValue("@Qty", qtyReq);
                         cmdUpdate.Parameters.AddWithValue("@Kode", kodeBarang);
+                        cmdUpdate.Parameters.AddWithValue("@Cabang", currentUser.ID_Cabang);
                         cmdUpdate.ExecuteNonQuery();
                     }
 
@@ -118,7 +129,7 @@ namespace MiMultyCBGApp
                 catch (Exception ex)
                 {
                     sqlTrans.Rollback();
-                    MessageBox.Show("Gagal menyimpan transaksi: " + ex.Message);
+                    MessageBox.Show("Gagal menyimpan transaksi: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }

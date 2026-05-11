@@ -55,6 +55,7 @@ namespace MiMultyCBGApp
             this.txtKode.Name = "txtKode";
             this.txtKode.ReadOnly = true;
             this.txtKode.Size = new System.Drawing.Size(150, 20);
+            this.txtKode.MaxLength = 50;
             
             // lblQty
             this.lblQty.Location = new System.Drawing.Point(12, 290);
