@@ -1,4 +1,5 @@
 using System;
+using System.Data;
 using System.Data.SqlClient;
 using MiMultyCBGApp.DAL;
 using MiMultyCBGApp.Models;
@@ -12,9 +13,10 @@ namespace MiMultyCBGApp.BLL
             User user = null;
             using (SqlConnection conn = DbConnection.GetConnection())
             {
-                string query = "SELECT UserID, Username, Role, ID_Cabang FROM Users WHERE Username=@Username AND Password=@Password";
-                using (SqlCommand cmd = new SqlCommand(query, conn))
+             
+                using (SqlCommand cmd = new SqlCommand("SP_LoginUser", conn))
                 {
+                    cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@Username", username);
                     cmd.Parameters.AddWithValue("@Password", password);
 
