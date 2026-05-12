@@ -46,28 +46,11 @@ namespace MiMultyCBGApp.BLL
 
         public void InsertBarang(Barang b)
         {
-            if (b.Harga <= 0) throw new ArgumentException("Harga barang harus lebih besar dari Rp 0!");
-            if (b.Stok <= 0) throw new ArgumentException("Jumlah stok atau restock harus minimal 1!");
-
             using (SqlConnection conn = DbConnection.GetConnection())
             {
-                conn.Open();
-
-                string checkQuery = "SELECT COUNT(*) FROM Barang WHERE KodeBarang=@Kode AND ID_Cabang=@Cabang";
-                using (SqlCommand checkCmd = new SqlCommand(checkQuery, conn))
+                using (SqlCommand cmd = new SqlCommand("SP_InsertBarang", conn))
                 {
-                    checkCmd.Parameters.AddWithValue("@Kode", b.KodeBarang);
-                    checkCmd.Parameters.AddWithValue("@Cabang", b.ID_Cabang);
-                    int count = (int)checkCmd.ExecuteScalar();
-                    if (count > 0)
-                    {
-                        throw new Exception("Barang tersebut sudah terdaftar di cabang ini! Silakan gunakan fitur Restock.");
-                    }
-                }
-
-                string query = "INSERT INTO Barang (KodeBarang, ID_Cabang, NamaBarang, Kategori, Harga, Stok) VALUES (@Kode, @Cabang, @Nama, @Kat, @Harga, @Stok)";
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
+                    cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@Kode", b.KodeBarang);
                     cmd.Parameters.AddWithValue("@Cabang", b.ID_Cabang);
                     cmd.Parameters.AddWithValue("@Nama", b.NamaBarang);
@@ -75,6 +58,7 @@ namespace MiMultyCBGApp.BLL
                     cmd.Parameters.AddWithValue("@Harga", b.Harga);
                     cmd.Parameters.AddWithValue("@Stok", b.Stok);
 
+                    conn.Open();
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -116,14 +100,11 @@ namespace MiMultyCBGApp.BLL
 
         public void UpdateBarang(Barang b)
         {
-            if (b.Harga <= 0) throw new ArgumentException("Harga barang harus lebih besar dari Rp 0!");
-            if (b.Stok < 0) throw new ArgumentException("Stok tidak boleh minus!");
-
             using (SqlConnection conn = DbConnection.GetConnection())
             {
-                string query = "UPDATE Barang SET NamaBarang=@Nama, Kategori=@Kat, Harga=@Harga, Stok=@Stok WHERE KodeBarang=@Kode AND ID_Cabang=@Cabang";
-                using (SqlCommand cmd = new SqlCommand(query, conn))
+                using (SqlCommand cmd = new SqlCommand("SP_UpdateBarang", conn))
                 {
+                    cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@Kode", b.KodeBarang);
                     cmd.Parameters.AddWithValue("@Cabang", b.ID_Cabang);
                     cmd.Parameters.AddWithValue("@Nama", b.NamaBarang);
@@ -141,11 +122,12 @@ namespace MiMultyCBGApp.BLL
         {
             using (SqlConnection conn = DbConnection.GetConnection())
             {
-                string query = "DELETE FROM Barang WHERE KodeBarang=@Kode AND ID_Cabang=@Cabang";
-                using (SqlCommand cmd = new SqlCommand(query, conn))
+                using (SqlCommand cmd = new SqlCommand("SP_DeleteBarang", conn))
                 {
+                    cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@Kode", kodeBarang);
                     cmd.Parameters.AddWithValue("@Cabang", idCabang);
+                    
                     conn.Open();
                     cmd.ExecuteNonQuery();
                 }
@@ -174,18 +156,7 @@ namespace MiMultyCBGApp.BLL
             DataTable dt = new DataTable();
             using (SqlConnection conn = DbConnection.GetConnection())
             {
-                string query = @"
-                    SELECT 
-                        ISNULL(b.KodeBarang, '-') AS [ID Barang], 
-                        c.ID_Cabang AS [ID Cabang], 
-                        ISNULL(b.NamaBarang, '-') AS [Nama Barang], 
-                        c.NamaCabang AS [Lokasi Cabang], 
-                        ISNULL(b.Stok, 0) AS [Stok Tersedia], 
-                        ISNULL(SUM(t.QtyTerjual), 0) AS [Barang Terjual]
-                    FROM Cabang c
-                    LEFT JOIN Barang b ON c.ID_Cabang = b.ID_Cabang
-                    LEFT JOIN Transaksi t ON b.KodeBarang = t.KodeBarang AND b.ID_Cabang = t.ID_Cabang
-                    GROUP BY b.KodeBarang, c.ID_Cabang, b.NamaBarang, c.NamaCabang, b.Stok";
+                string query = "SELECT [ID Barang], [ID Cabang], [Nama Barang], [Lokasi Cabang], [Stok Tersedia], [Barang Terjual] FROM View_DaftarBarangPerCabang";
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
                     conn.Open();
@@ -333,19 +304,7 @@ namespace MiMultyCBGApp.BLL
             DataTable dt = new DataTable();
             using (SqlConnection conn = DbConnection.GetConnection())
             {
-                string query = @"
-                    SELECT 
-                        ISNULL(b.KodeBarang, '-') AS [ID Barang], 
-                        c.ID_Cabang AS [ID Cabang], 
-                        ISNULL(b.NamaBarang, '-') AS [Nama Barang], 
-                        c.NamaCabang AS [Lokasi Cabang], 
-                        ISNULL(b.Stok, 0) AS [Stok], 
-                        ISNULL(SUM(t.QtyTerjual), 0) AS [Barang Terjual]
-                    FROM Cabang c
-                    LEFT JOIN Barang b ON c.ID_Cabang = b.ID_Cabang
-                    LEFT JOIN Transaksi t ON b.KodeBarang = t.KodeBarang AND b.ID_Cabang = t.ID_Cabang AND t.ID_Cabang = @ID_Cabang
-                    WHERE c.ID_Cabang = @ID_Cabang
-                    GROUP BY b.KodeBarang, c.ID_Cabang, b.NamaBarang, c.NamaCabang, b.Stok";
+                string query = "SELECT [ID Barang], [ID Cabang], [Nama Barang], [Lokasi Cabang], [Stok Tersedia] AS [Stok], [Barang Terjual] FROM View_DaftarBarangPerCabang WHERE [ID Cabang] = @ID_Cabang";
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@ID_Cabang", idCabang);
