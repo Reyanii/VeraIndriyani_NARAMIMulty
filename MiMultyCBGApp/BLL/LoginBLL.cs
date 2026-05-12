@@ -10,13 +10,14 @@ namespace MiMultyCBGApp.BLL
         public User AuthenticateUser(string username, string password)
         {
             User user = null;
+            string hashedPassword = SecurityHelper.HashPassword(password);
             using (SqlConnection conn = DbConnection.GetConnection())
             {
                 string query = "SELECT UserID, Username, Role, ID_Cabang FROM Users WHERE Username=@Username AND Password=@Password";
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@Username", username);
-                    cmd.Parameters.AddWithValue("@Password", password);
+                    cmd.Parameters.AddWithValue("@Password", hashedPassword);
 
                     try
                     {

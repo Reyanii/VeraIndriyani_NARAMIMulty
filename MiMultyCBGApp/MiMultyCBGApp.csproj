@@ -44,10 +44,12 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
+    <Reference Include="System.Configuration" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BLL\BarangBLL.cs" />
     <Compile Include="BLL\LoginBLL.cs" />
+    <Compile Include="BLL\SecurityHelper.cs" />
     <Compile Include="DAL\DbConnection.cs" />
     <Compile Include="Models\Barang.cs" />
     <Compile Include="Models\Cabang.cs" />

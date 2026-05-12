@@ -303,13 +303,27 @@ namespace MiMultyCBGApp.BLL
         {
             using (SqlConnection conn = DbConnection.GetConnection())
             {
+                conn.Open();
+
+                // Check username duplication
+                string checkQuery = "SELECT COUNT(*) FROM Users WHERE Username=@User";
+                using (SqlCommand checkCmd = new SqlCommand(checkQuery, conn))
+                {
+                    checkCmd.Parameters.AddWithValue("@User", username);
+                    int count = (int)checkCmd.ExecuteScalar();
+                    if (count > 0)
+                    {
+                        throw new Exception("Username sudah digunakan! Silakan pilih username lain.");
+                    }
+                }
+
+                string hashedPassword = SecurityHelper.HashPassword(password);
                 string query = "INSERT INTO Users (Username, Password, Role, ID_Cabang) VALUES (@User, @Pass, 'Staff', @Cabang)";
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@User", username);
-                    cmd.Parameters.AddWithValue("@Pass", password);
+                    cmd.Parameters.AddWithValue("@Pass", hashedPassword);
                     cmd.Parameters.AddWithValue("@Cabang", idCabang);
-                    conn.Open();
                     cmd.ExecuteNonQuery();
                 }
             }
