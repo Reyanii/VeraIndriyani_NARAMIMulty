@@ -9,6 +9,8 @@ namespace MiMultyCBGApp
     {
         private User currentUser;
         private BarangBLL barangBll = new BarangBLL();
+        private BindingSource bindingSource;
+        private BindingNavigator bindingNavigator;
 
         public FormStaff(User user)
         {
@@ -16,6 +18,16 @@ namespace MiMultyCBGApp
             this.currentUser = user;
             lblInfo.Text = $"Login Staff: {user.Username} | ID Cabang: {user.ID_Cabang}";
             
+            bindingSource = new BindingSource();
+            bindingNavigator = new BindingNavigator(true);
+            bindingNavigator.BindingSource = bindingSource;
+            this.Controls.Add(bindingNavigator);
+            
+            if (dgvBarangStaff != null)
+            {
+                dgvBarangStaff.Top = bindingNavigator.Bottom + 10;
+            }
+
             // Tambahkan event handler untuk klik ganda pada Grid
             this.dgvBarangStaff.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvBarangStaff_CellDoubleClick);
             
@@ -42,7 +54,8 @@ namespace MiMultyCBGApp
 
         private void LoadDashboardData()
         {
-            dgvBarangStaff.DataSource = barangBll.GetDashboardDataStaff(currentUser.ID_Cabang);
+            bindingSource.DataSource = barangBll.GetDashboardDataStaff(currentUser.ID_Cabang);
+            dgvBarangStaff.DataSource = bindingSource;
             dgvBarangStaff.ReadOnly = true;
             dgvBarangStaff.AllowUserToAddRows = false;
         }
