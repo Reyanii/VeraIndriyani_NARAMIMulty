@@ -9,6 +9,8 @@ namespace MiMultyCBGApp
     {
         private BarangBLL bll = new BarangBLL();
         private DataGridView gridDashboard;
+        private BindingSource bindingSource;
+        private BindingNavigator bindingNavigator;
         private Button btnRefresh;
         private Button btnRestock;
         private Button btnTambahCabang;
@@ -29,9 +31,13 @@ namespace MiMultyCBGApp
         {
             this.Size = new Size(1000, 500);
 
+            bindingSource = new BindingSource();
+            bindingNavigator = new BindingNavigator(true);
+            bindingNavigator.BindingSource = bindingSource;
+
             gridDashboard = new DataGridView();
-            gridDashboard.Location = new Point(20, 20);
-            gridDashboard.Size = new Size(940, 350);
+            gridDashboard.Location = new Point(20, 50);
+            gridDashboard.Size = new Size(940, 320);
             gridDashboard.ReadOnly = true;
             gridDashboard.AllowUserToAddRows = false;
             gridDashboard.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
@@ -58,6 +64,7 @@ namespace MiMultyCBGApp
             btnLogout = new Button() { Text = "Keluar", Location = new Point(860, 390), Width = 100, BackColor = Color.IndianRed, ForeColor = Color.White };
             btnLogout.Click += (s, e) => this.Close();
 
+            this.Controls.Add(bindingNavigator);
             this.Controls.Add(gridDashboard);
             this.Controls.Add(btnRefresh);
             this.Controls.Add(btnTambahBarang);
@@ -78,7 +85,8 @@ namespace MiMultyCBGApp
         {
             try
             {
-                gridDashboard.DataSource = bll.GetDashboardData();
+                bindingSource.DataSource = bll.GetDashboardData();
+                gridDashboard.DataSource = bindingSource;
             }
             catch (Exception ex)
             {
