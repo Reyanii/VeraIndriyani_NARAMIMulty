@@ -317,12 +317,11 @@ namespace MiMultyCBGApp.BLL
                     }
                 }
 
-                string hashedPassword = SecurityHelper.HashPassword(password);
                 string query = "INSERT INTO Users (Username, Password, Role, ID_Cabang) VALUES (@User, @Pass, 'Staff', @Cabang)";
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@User", username);
-                    cmd.Parameters.AddWithValue("@Pass", hashedPassword);
+                    cmd.Parameters.AddWithValue("@Pass", password);
                     cmd.Parameters.AddWithValue("@Cabang", idCabang);
                     cmd.ExecuteNonQuery();
                 }
